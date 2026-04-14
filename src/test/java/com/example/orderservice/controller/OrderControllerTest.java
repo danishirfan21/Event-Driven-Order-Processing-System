@@ -60,11 +60,41 @@ public class OrderControllerTest {
     }
 
     @Test
-    void shouldReturn400WhenQuantityIsZeroOrNegative() throws Exception {
+    void shouldReturn400WhenQuantityIsZero() throws Exception {
         String orderRequest = """
                 {
                     "productId": "prod-123",
                     "quantity": 0
+                }
+                """;
+
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(orderRequest))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400WhenQuantityIsNegative() throws Exception {
+        String orderRequest = """
+                {
+                    "productId": "prod-123",
+                    "quantity": -1
+                }
+                """;
+
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(orderRequest))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400WhenProductIdIsNull() throws Exception {
+        String orderRequest = """
+                {
+                    "productId": null,
+                    "quantity": 2
                 }
                 """;
 
