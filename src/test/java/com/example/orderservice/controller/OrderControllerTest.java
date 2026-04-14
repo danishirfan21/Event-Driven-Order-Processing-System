@@ -43,4 +43,34 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.orderId").value("order-123"))
                 .andExpect(jsonPath("$.status").value("CREATED"));
     }
+
+    @Test
+    void shouldReturn400WhenProductIdIsBlank() throws Exception {
+        String orderRequest = """
+                {
+                    "productId": "",
+                    "quantity": 2
+                }
+                """;
+
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(orderRequest))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400WhenQuantityIsZeroOrNegative() throws Exception {
+        String orderRequest = """
+                {
+                    "productId": "prod-123",
+                    "quantity": 0
+                }
+                """;
+
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(orderRequest))
+                .andExpect(status().isBadRequest());
+    }
 }
