@@ -1,11 +1,14 @@
 package com.example.orderservice.service;
 
 import com.example.orderservice.dto.OrderCreatedEvent;
+import com.example.orderservice.dto.OrderFailedEvent;
+import com.example.orderservice.dto.OrderReservedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import java.lang.reflect.Method;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,27 +29,47 @@ class OrderCreatedEventConsumerTest {
     @Mock
     private OrderStatusService orderStatusService;
 
+    @Mock
+    private OrderOutcomeEventPublisher orderOutcomeEventPublisher;
+
     @InjectMocks
     private OrderCreatedEventConsumer consumer;
 
     @Test
-    void shouldReserveInventoryAndMarkOrderAsReservedWhenReservationSucceeds() {
+    void shouldReserveInventoryMarkReservedAndPublishEventWhenReservationSucceeds() {
         OrderCreatedEvent event = new OrderCreatedEvent("1", "PROD-1", 3, "CREATED");
 
         consumer.handle(event);
 
         verify(inventoryService).reserveInventory("PROD-1", 3);
         verify(orderStatusService).markReserved(1L);
+
+        ArgumentCaptor<OrderReservedEvent> eventCaptor = ArgumentCaptor.forClass(OrderReservedEvent.class);
+        verify(orderOutcomeEventPublisher).publishReserved(eventCaptor.capture());
+        OrderReservedEvent reservedEvent = eventCaptor.getValue();
+        assertEquals("1", reservedEvent.getOrderId());
+        assertEquals("PROD-1", reservedEvent.getProductId());
+        assertEquals(3, reservedEvent.getQuantity());
+        assertEquals("RESERVED", reservedEvent.getStatus());
     }
 
     @Test
-    void shouldMarkOrderAsFailedAndRethrowWhenReservationFails() {
+    void shouldMarkOrderAsFailedPublishEventAndRethrowWhenReservationFails() {
         OrderCreatedEvent event = new OrderCreatedEvent("1", "PROD-1", 10, "CREATED");
         doThrow(new RuntimeException("Inventory failure"))
                 .when(inventoryService).reserveInventory("PROD-1", 10);
 
         assertThrows(RuntimeException.class, () -> consumer.handle(event));
         verify(orderStatusService).markFailed(1L);
+
+        ArgumentCaptor<OrderFailedEvent> eventCaptor = ArgumentCaptor.forClass(OrderFailedEvent.class);
+        verify(orderOutcomeEventPublisher).publishFailed(eventCaptor.capture());
+        OrderFailedEvent failedEvent = eventCaptor.getValue();
+        assertEquals("1", failedEvent.getOrderId());
+        assertEquals("PROD-1", failedEvent.getProductId());
+        assertEquals(10, failedEvent.getQuantity());
+        assertEquals("FAILED", failedEvent.getStatus());
+        assertEquals("Inventory failure", failedEvent.getReason());
     }
 
     @Test
