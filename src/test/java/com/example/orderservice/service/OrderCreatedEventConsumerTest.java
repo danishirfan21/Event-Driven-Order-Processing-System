@@ -23,30 +23,35 @@ class OrderCreatedEventConsumerTest {
     @Mock
     private InventoryService inventoryService;
 
+    @Mock
+    private OrderStatusService orderStatusService;
+
     @InjectMocks
     private OrderCreatedEventConsumer consumer;
 
     @Test
-    void shouldCallInventoryServiceWhenOrderCreatedEventReceived() {
-        OrderCreatedEvent event = new OrderCreatedEvent("ORD-1", "PROD-1", 3, "CREATED");
+    void shouldReserveInventoryAndMarkOrderAsReservedWhenReservationSucceeds() {
+        OrderCreatedEvent event = new OrderCreatedEvent("1", "PROD-1", 3, "CREATED");
 
         consumer.handle(event);
 
         verify(inventoryService).reserveInventory("PROD-1", 3);
+        verify(orderStatusService).markReserved(1L);
     }
 
     @Test
-    void shouldPropagateExceptionWhenInventoryReservationFails() {
-        OrderCreatedEvent event = new OrderCreatedEvent("ORD-1", "PROD-1", 10, "CREATED");
+    void shouldMarkOrderAsFailedAndRethrowWhenReservationFails() {
+        OrderCreatedEvent event = new OrderCreatedEvent("1", "PROD-1", 10, "CREATED");
         doThrow(new RuntimeException("Inventory failure"))
                 .when(inventoryService).reserveInventory("PROD-1", 10);
 
         assertThrows(RuntimeException.class, () -> consumer.handle(event));
+        verify(orderStatusService).markFailed(1L);
     }
 
     @Test
     void shouldDelegateToHandleWhenListenIsCalled() {
-        OrderCreatedEvent event = new OrderCreatedEvent("ORD-1", "PROD-1", 3, "CREATED");
+        OrderCreatedEvent event = new OrderCreatedEvent("1", "PROD-1", 3, "CREATED");
         OrderCreatedEventConsumer spyConsumer = spy(consumer);
 
         spyConsumer.listen(event);
