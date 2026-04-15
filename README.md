@@ -1,7 +1,7 @@
 # Event-Driven Order Processing System
 
 ## Overview
-This project is a Spring Boot event-driven backend that simulates a multi-stage order workflow. It demonstrates a robust microservices-like architecture using Spring Kafka for asynchronous communication between different components of the order lifecycle.
+This project is a single-module Spring Boot application that simulates a multi-stage event-driven workflow with microservice-style boundaries. It demonstrates asynchronous communication using Spring Kafka to coordinate different components of the order lifecycle.
 
 ## Architecture Summary
 The system is composed of several key components that handle specific stages of the order process:
@@ -13,7 +13,7 @@ The system is composed of several key components that handle specific stages of 
 - **Failure Handling**: Manages compensating logic or cleanup for failed orders.
 
 ## Workflow
-1. **Client creates order**: A POST request to the Order API persists the order as `PENDING` and publishes an `OrderCreatedEvent`.
+1. **Client creates order**: A POST request to the Order API persists the order as `CREATED` and publishes an `OrderCreatedEvent`.
 2. **Inventory processing**: The `OrderCreatedEventConsumer` picks up the event.
 3. **Success path**:
     - Inventory is reserved (simulated).
@@ -88,7 +88,7 @@ mvn test
 
 ## Design Decisions
 - **Consumer Delegation**: Kafka consumers use a tiny `listen()` method for infrastructure and delegate business logic to a public `handle()` method. This makes the logic easily unit-testable without requiring a Kafka context.
-- **Publisher Abstractions**: Messaging logic is hidden behind interfaces (e.g., `OrderEventPublisher`). This decouples the core business logic from the specific messaging implementation (Kafka).
+- **Publisher Abstractions**: Messaging logic is hidden behind specialized interfaces (e.g., `OrderEventPublisher`, `OrderOutcomeEventPublisher`). This decouples the core business logic from the specific messaging implementation (Kafka).
 - **Decoupled Infrastructure**: `KafkaTemplate` is not injected directly into consumers or main services, adhering to the Dependency Inversion Principle and keeping infrastructure concerns isolated.
 - **Simulated Downstream Systems**: Services like `InventoryService` and `ShippingService` simulate external system interactions, providing a clear demonstration of event-driven flows without external dependencies.
 
