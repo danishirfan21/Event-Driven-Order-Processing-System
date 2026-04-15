@@ -1,5 +1,6 @@
 package com.example.orderservice.service;
 
+import com.example.orderservice.dto.OrderCreatedEvent;
 import com.example.orderservice.dto.OrderRequest;
 import com.example.orderservice.dto.OrderResponse;
 import com.example.orderservice.model.Order;
@@ -10,9 +11,11 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventPublisher orderEventPublisher;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, OrderEventPublisher orderEventPublisher) {
         this.orderRepository = orderRepository;
+        this.orderEventPublisher = orderEventPublisher;
     }
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
@@ -23,6 +26,13 @@ public class OrderService {
         );
 
         Order savedOrder = orderRepository.save(order);
+
+        orderEventPublisher.publish(new OrderCreatedEvent(
+                savedOrder.getId().toString(),
+                savedOrder.getProductId(),
+                savedOrder.getQuantity(),
+                savedOrder.getStatus()
+        ));
 
         return new OrderResponse(savedOrder.getId().toString(), savedOrder.getStatus());
     }

@@ -1,5 +1,6 @@
 package com.example.orderservice.service;
 
+import com.example.orderservice.dto.OrderCreatedEvent;
 import com.example.orderservice.dto.OrderRequest;
 import com.example.orderservice.dto.OrderResponse;
 import com.example.orderservice.model.Order;
@@ -22,11 +23,17 @@ class OrderServiceTest {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private OrderEventPublisher orderEventPublisher;
+
     @InjectMocks
     private OrderService orderService;
 
     @Captor
     private ArgumentCaptor<Order> orderCaptor;
+
+    @Captor
+    private ArgumentCaptor<OrderCreatedEvent> eventCaptor;
 
     @Test
     void shouldCreateOrder() {
@@ -46,5 +53,33 @@ class OrderServiceTest {
         assertEquals("prod-123", capturedOrder.getProductId());
         assertEquals(2, capturedOrder.getQuantity());
         assertEquals("CREATED", capturedOrder.getStatus());
+    }
+
+    @Test
+    void shouldPublishOrderCreatedEvent() {
+        OrderRequest request = new OrderRequest("prod-123", 2);
+        Order savedOrder = new Order("prod-123", 2, "CREATED");
+        savedOrder.setId(1L);
+
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        orderService.createOrder(request);
+
+        verify(orderEventPublisher).publish(eventCaptor.capture());
+        OrderCreatedEvent event = eventCaptor.getValue();
+        assertEquals("1", event.getOrderId());
+        assertEquals("prod-123", event.getProductId());
+        assertEquals(2, event.getQuantity());
+        assertEquals("CREATED", event.getStatus());
+    }
+
+    @Test
+    void shouldNotPublishEventWhenOrderSaveFails() {
+        OrderRequest request = new OrderRequest("prod-123", 2);
+        when(orderRepository.save(any(Order.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(RuntimeException.class, () -> orderService.createOrder(request));
+
+        verify(orderEventPublisher, never()).publish(any(OrderCreatedEvent.class));
     }
 }
