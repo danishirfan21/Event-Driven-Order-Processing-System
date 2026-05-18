@@ -36,4 +36,13 @@ public class OrderService {
 
         return new OrderResponse(savedOrder.getId().toString(), savedOrder.getStatus());
     }
+
+    public java.util.List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new com.example.orderservice.exception.OrderNotFoundException("Order not found with ID: " + id));
+    }
 }

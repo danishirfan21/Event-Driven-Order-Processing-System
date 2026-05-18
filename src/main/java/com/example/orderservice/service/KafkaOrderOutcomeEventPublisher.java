@@ -5,7 +5,10 @@ import com.example.orderservice.dto.OrderReservedEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Component
+@ConditionalOnProperty(name = "app.messaging.type", havingValue = "kafka", matchIfMissing = true)
 public class KafkaOrderOutcomeEventPublisher implements OrderOutcomeEventPublisher {
 
     public static final String ORDER_RESERVED_TOPIC = "order.reserved";

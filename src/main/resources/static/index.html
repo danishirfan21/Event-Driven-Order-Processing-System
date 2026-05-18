@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event-Driven Order Processing System Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(17, 25, 40, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.15);
+            
+            --success-green: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.15);
+            
+            --error-red: #ef4444;
+            --error-glow: rgba(239, 68, 68, 0.15);
+            
+            --warning-yellow: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.15);
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(6, 182, 212, 0.05) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Glassmorphic Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            padding: 1.5rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--success-green));
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #000;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #a5f3fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.1rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success-green);
+            box-shadow: 0 0 10px var(--success-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Main Workspace Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards styling */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: var(--transition-smooth);
+        }
+
+        .card:hover {
+            border-color: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title svg {
+            color: var(--accent-cyan);
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        /* Forms styling */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px var(--accent-cyan-glow);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* Preset pills */
+        .preset-container {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
+        .preset-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .preset-pill:hover {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* Primary Button */
+        button.btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button.btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(6, 182, 212, 0.5);
+            filter: brightness(1.1);
+        }
+
+        button.btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Table & Lists */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 1rem;
+            border: 1px solid var(--card-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--card-border);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Status Badge Pills */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .badge-created {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-yellow);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-reserved {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Interactive Process Visualizer */
+        .visualizer {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .workflow-nodes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 1rem 0;
+        }
+
+        .workflow-nodes::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            right: 5%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .node {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: #111827;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            z-index: 2;
+            position: relative;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .node-label {
+            position: absolute;
+            top: 4rem;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .node.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px var(--accent-cyan-glow);
+            color: var(--accent-cyan);
+        }
+
+        .node.success {
+            border-color: var(--success-green);
+            box-shadow: 0 0 20px var(--success-glow);
+            color: var(--success-green);
+        }
+
+        .node.error {
+            border-color: var(--error-red);
+            box-shadow: 0 0 20px var(--error-glow);
+            color: var(--error-red);
+        }
+
+        /* Utility classes */
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .text-accent {
+            color: var(--accent-cyan);
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--accent-cyan);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .empty-state svg {
+            width: 3rem;
+            height: 3rem;
+            stroke: var(--text-secondary);
+            opacity: 0.4;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Success banner */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(16, 185, 129, 0.9);
+            color: #000;
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <div class="logo-badge">⚡</div>
+            <div class="header-title">
+                <h1>Event-Driven Order Processing</h1>
+                <p>System Orchestrator Console & Event Registry</p>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            <span>Local Engine Active (In-Memory)</span>
+        </div>
+    </header>
+
+    <!-- Workspace -->
+    <div class="workspace">
+        
+        <!-- Left Side: Control Panel & Architecture -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            
+            <!-- Order Console Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Order Dispatch Console
+                    </h3>
+                </div>
+
+                <form id="orderForm" onsubmit="handleOrderSubmit(event)" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div class="form-group">
+                        <label for="productId">Product Identifier</label>
+                        <input type="text" id="productId" required placeholder="e.g., product-macbook-pro" value="prod-premium-099">
+                        <div class="preset-container">
+                            <span class="preset-pill" onclick="setProduct('prod-iphone-15')">iPhone 15</span>
+                            <span class="preset-pill" onclick="setProduct('prod-macbook-m3')">MacBook Pro M3</span>
+                            <span class="preset-pill" onclick="setProduct('prod-keyboard-mx')">MX Keys Keyboard</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">Order Quantity</label>
+                        <input type="number" id="quantity" min="1" required placeholder="Quantity to buy" value="2">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            💡 Quantity <strong>&le; 5</strong> succeeds. Quantity <strong>&gt; 5</strong> simulates inventory exhaustion (Failure Compensating Path).
+                        </span>
+                        <div class="preset-container">
+                            <span class="preset-pill" onclick="setQuantity(1)">1 (Success)</span>
+                            <span class="preset-pill" onclick="setQuantity(3)">3 (Success)</span>
+                            <span class="preset-pill" onclick="setQuantity(7)">7 (Exhaustion Failure)</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>Dispatch Order Event</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Flow Visualizer -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Workflow Engine Topology
+                    </h3>
+                </div>
+
+                <div class="visualizer">
+                    <div class="workflow-nodes">
+                        <div id="node1" class="node active">
+                            <span>1</span>
+                            <div class="node-label">CREATED</div>
+                        </div>
+                        <div id="node2" class="node">
+                            <span>2</span>
+                            <div class="node-label">INVENTORY</div>
+                        </div>
+                        <div id="node3" class="node">
+                            <span>3</span>
+                            <div class="node-label">OUTCOME</div>
+                        </div>
+                        <div id="node4" class="node">
+                            <span>4</span>
+                            <div id="outcomeNodeLabel" class="node-label">SHIPPING/DLQ</div>
+                        </div>
+                    </div>
+                    <div id="simulationLogs" style="margin-top: 2rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem; padding: 1rem; font-family: monospace; font-size: 0.75rem; color: #a5f3fc; height: 100px; overflow-y: auto;">
+                        [Engine Ready] System idling. Dispatch an order event to trace the transaction lifecycle.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Order List Registry -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Live Order Registry
+                </h3>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="icon-btn" onclick="fetchOrders()" title="Refresh Registry">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4.75L21.67 5H18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table content -->
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product Details</th>
+                            <th>Quantity</th>
+                            <th>Transaction Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Dynamic content loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state -->
+            <div id="emptyState" class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p>No orders processed in this runtime context yet.</p>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Fill the dispatch console to begin processing events.</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Toast element -->
+<div id="toast" class="toast">
+    <span>✓</span> <span id="toastMessage">Order processed successfully!</span>
+</div>
+
+<script>
+    // System utility functions
+    function setProduct(name) {
+        document.getElementById('productId').value = name;
+    }
+
+    function setQuantity(val) {
+        document.getElementById('quantity').value = val;
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMessage').innerText = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    function logSimulation(msg) {
+        const logger = document.getElementById('simulationLogs');
+        const timestamp = new Date().toLocaleTimeString();
+        logger.innerHTML += `\n[${timestamp}] ${msg}`;
+        logger.scrollTop = logger.scrollHeight;
+    }
+
+    // Set visual nodes active sequence based on final state
+    function animateWorkflow(quantity, status) {
+        const n1 = document.getElementById('node1');
+        const n2 = document.getElementById('node2');
+        const n3 = document.getElementById('node3');
+        const n4 = document.getElementById('node4');
+        const lbl = document.getElementById('outcomeNodeLabel');
+
+        // Reset
+        n1.className = 'node active';
+        n2.className = 'node';
+        n3.className = 'node';
+        n4.className = 'node';
+        lbl.innerText = 'SHIPPING/DLQ';
+        
+        logSimulation("Step 1: REST POST request received. Order saved in H2 as CREATED.");
+        logSimulation("Step 1: Event 'OrderCreatedEvent' published to topic: order.created.");
+
+        setTimeout(() => {
+            n2.className = 'node active';
+            logSimulation("Step 2: Consumer 'OrderCreatedEventConsumer' picked up event locally.");
+            logSimulation(`Step 2: Simulating inventory reservation for quantity: ${quantity}...`);
+        }, 800);
+
+        setTimeout(() => {
+            if (quantity <= 5) {
+                n3.className = 'node success';
+                logSimulation("Step 3: Inventory reserved successfully! Status updated to RESERVED.");
+                logSimulation("Step 3: Event 'OrderReservedEvent' published to topic: order.reserved.");
+                
+                setTimeout(() => {
+                    n4.className = 'node success';
+                    lbl.innerText = 'SHIPPED';
+                    logSimulation("Step 4: 'OrderReservedEventConsumer' triggered shipping service.");
+                    logSimulation("Step 4: Event 'ShippingPreparedEvent' published to topic: shipping.prepared.");
+                    logSimulation("[Success Lifecycle Complete]");
+                }, 800);
+            } else {
+                n3.className = 'node error';
+                logSimulation(`Step 3: Inventory reservation FAILED! Quantity ${quantity} > threshold of 5.`);
+                logSimulation("Step 3: Compensating logic running. Status updated to FAILED.");
+                logSimulation("Step 3: Event 'OrderFailedEvent' published to topic: order.failed.");
+                
+                setTimeout(() => {
+                    n4.className = 'node error';
+                    lbl.innerText = 'DLQ / COMPENSATED';
+                    logSimulation("Step 4: 'OrderFailedEventConsumer' caught error.");
+                    logSimulation("Step 4: Event 'OrderFailureHandledEvent' published to topic: order.failure.handled.");
+                    logSimulation("[Compensating Failure Lifecycle Complete]");
+                }, 800);
+            }
+        }, 1600);
+    }
+
+    // API Integrations
+    async function fetchOrders() {
+        try {
+            const response = await fetch('/orders');
+            if (!response.ok) throw new Error("Failed to load registry database.");
+            
+            const orders = await response.json();
+            const tbody = document.getElementById('ordersTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            tbody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            // Render rows in reverse order (newest first)
+            orders.reverse().forEach(order => {
+                const tr = document.createElement('tr');
+                let badgeClass = 'badge-created';
+                if (order.status === 'RESERVED') badgeClass = 'badge-reserved';
+                if (order.status === 'FAILED') badgeClass = 'badge-failed';
+                
+                tr.innerHTML = `
+                    <td style="font-weight: 700; color: var(--accent-cyan);">#${order.id}</td>
+                    <td style="color: var(--text-primary); font-weight: 500;">${order.productId}</td>
+                    <td style="text-align: center; color: var(--text-secondary);">${order.quantity}</td>
+                    <td><span class="badge ${badgeClass}">${order.status}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Registry fetch error:", error);
+        }
+    }
+
+    async function handleOrderSubmit(event) {
+        event.preventDefault();
+        
+        const productId = document.getElementById('productId').value.trim();
+        const quantity = parseInt(document.getElementById('quantity').value);
+        
+        const payload = {
+            productId: productId,
+            quantity: quantity
+        };
+        
+        try {
+            const response = await fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+            
+            const result = await response.json();
+            showToast(`Order #${result.orderId} dispatched successfully!`);
+            
+            // Animate local pipeline transitions
+            animateWorkflow(quantity, result.status);
+            
+            // Refresh tables after the workflow has fully processed (after 2.5s)
+            setTimeout(() => {
+                fetchOrders();
+            }, 2500);
+            
+        } catch (error) {
+            showToast("Failed to dispatch order event!");
+            console.error("Submission failed:", error);
+        }
+    }
+
+    // Initialize registry on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchOrders();
+        // Periodically refresh the grid to capture background asynchronous transitions
+        setInterval(fetchOrders, 3000);
+    });
+</script>
+</body>
+</html>
