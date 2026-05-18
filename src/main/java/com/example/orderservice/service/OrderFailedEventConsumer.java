@@ -10,14 +10,19 @@ public class OrderFailedEventConsumer {
 
     private final FailureHandlingService failureHandlingService;
     private final FailureEventPublisher failureEventPublisher;
+    private final OrderWorkflowStateService orderWorkflowStateService;
 
-    public OrderFailedEventConsumer(FailureHandlingService failureHandlingService, FailureEventPublisher failureEventPublisher) {
+    public OrderFailedEventConsumer(FailureHandlingService failureHandlingService,
+                                    FailureEventPublisher failureEventPublisher,
+                                    OrderWorkflowStateService orderWorkflowStateService) {
         this.failureHandlingService = failureHandlingService;
         this.failureEventPublisher = failureEventPublisher;
+        this.orderWorkflowStateService = orderWorkflowStateService;
     }
 
     public void handle(OrderFailedEvent event) {
         failureHandlingService.handleFailure(event.getProductId(), event.getQuantity(), event.getReason());
+        orderWorkflowStateService.recordFailureHandled(Long.valueOf(event.getOrderId()));
         failureEventPublisher.publishHandled(new OrderFailureHandledEvent(
                 event.getOrderId(),
                 event.getProductId(),

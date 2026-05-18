@@ -1,0 +1,11 @@
+package com.example.orderservice.repository;
+
+import com.example.orderservice.model.OrderWorkflowState;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface OrderWorkflowStateRepository extends JpaRepository<OrderWorkflowState, Long> {
+    Optional<OrderWorkflowState> findByOrderId(Long orderId);
+}

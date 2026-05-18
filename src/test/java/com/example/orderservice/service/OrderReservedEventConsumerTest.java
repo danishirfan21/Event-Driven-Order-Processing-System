@@ -26,6 +26,9 @@ class OrderReservedEventConsumerTest {
     @Mock
     private ShippingEventPublisher shippingEventPublisher;
 
+    @Mock
+    private OrderWorkflowStateService orderWorkflowStateService;
+
     @InjectMocks
     private OrderReservedEventConsumer consumer;
 
@@ -77,7 +80,7 @@ class OrderReservedEventConsumerTest {
 
     @Test
     void listenMethodShouldHaveKafkaListenerAnnotation() throws NoSuchMethodException {
-        Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class);
+        Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class, Integer.class, String.class);
         KafkaListener annotation = method.getAnnotation(KafkaListener.class);
 
         assertNotNull(annotation, "@KafkaListener annotation should be present on listen method");
@@ -87,7 +90,7 @@ class OrderReservedEventConsumerTest {
 
     @Test
     void listenMethodShouldHaveRetryableTopicAnnotation() throws NoSuchMethodException {
-        Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class);
+        Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class, Integer.class, String.class);
         org.springframework.kafka.annotation.RetryableTopic annotation = method.getAnnotation(org.springframework.kafka.annotation.RetryableTopic.class);
 
         assertNotNull(annotation, "@RetryableTopic annotation should be present on listen method");

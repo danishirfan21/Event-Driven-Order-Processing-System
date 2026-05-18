@@ -32,6 +32,9 @@ class OrderCreatedEventConsumerTest {
     @Mock
     private OrderOutcomeEventPublisher orderOutcomeEventPublisher;
 
+    @Mock
+    private OrderWorkflowStateService orderWorkflowStateService;
+
     @InjectMocks
     private OrderCreatedEventConsumer consumer;
 

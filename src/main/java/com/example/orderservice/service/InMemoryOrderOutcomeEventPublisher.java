@@ -16,11 +16,14 @@ public class InMemoryOrderOutcomeEventPublisher implements OrderOutcomeEventPubl
 
     private final OrderReservedEventConsumer reservedConsumer;
     private final OrderFailedEventConsumer failedConsumer;
+    private final OrderWorkflowStateService orderWorkflowStateService;
 
     public InMemoryOrderOutcomeEventPublisher(@Lazy OrderReservedEventConsumer reservedConsumer,
-                                              @Lazy OrderFailedEventConsumer failedConsumer) {
+                                              @Lazy OrderFailedEventConsumer failedConsumer,
+                                              OrderWorkflowStateService orderWorkflowStateService) {
         this.reservedConsumer = reservedConsumer;
         this.failedConsumer = failedConsumer;
+        this.orderWorkflowStateService = orderWorkflowStateService;
     }
 
     @Override
@@ -29,6 +32,7 @@ public class InMemoryOrderOutcomeEventPublisher implements OrderOutcomeEventPubl
         new Thread(() -> {
             try {
                 log.info("[In-Memory Consumer] Received reserved event for Order ID: {}", event.getOrderId());
+                orderWorkflowStateService.recordShippingPreparationStarted(Long.valueOf(event.getOrderId()));
                 reservedConsumer.handle(event);
             } catch (Exception e) {
                 simulateInMemoryRetryAndDlt(event, e);
@@ -47,6 +51,7 @@ public class InMemoryOrderOutcomeEventPublisher implements OrderOutcomeEventPubl
     private void simulateInMemoryRetryAndDlt(OrderReservedEvent event, Exception originalException) {
         log.warn("[In-Memory Retry System] Detected shipping failure for Order ID: {}. Triggering local retry loop...", event.getOrderId());
         int maxAttempts = 3;
+        Long orderId = Long.valueOf(event.getOrderId());
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 // Simulate delay before retry attempt
@@ -55,8 +60,10 @@ public class InMemoryOrderOutcomeEventPublisher implements OrderOutcomeEventPubl
                 Thread.currentThread().interrupt();
             }
             log.warn("[In-Memory Retry System] Attempt {}/{} failed for Order ID: {}", attempt, maxAttempts, event.getOrderId());
+            orderWorkflowStateService.recordShippingRetry(orderId, attempt, originalException.getMessage());
         }
         log.error("[In-Memory DLQ ALERT] Order ID: {} failed permanently after {} attempts. Routed to virtual DLQ topic: order.reserved-dlt. Error: {}",
                 event.getOrderId(), maxAttempts, originalException.getMessage());
+        orderWorkflowStateService.recordDeadLettered(orderId, "order.reserved-dlt", originalException.getMessage());
     }
 }

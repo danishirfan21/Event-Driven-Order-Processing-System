@@ -12,10 +12,14 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderEventPublisher orderEventPublisher;
+    private final OrderWorkflowStateService orderWorkflowStateService;
 
-    public OrderService(OrderRepository orderRepository, OrderEventPublisher orderEventPublisher) {
+    public OrderService(OrderRepository orderRepository,
+                        OrderEventPublisher orderEventPublisher,
+                        OrderWorkflowStateService orderWorkflowStateService) {
         this.orderRepository = orderRepository;
         this.orderEventPublisher = orderEventPublisher;
+        this.orderWorkflowStateService = orderWorkflowStateService;
     }
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
@@ -26,6 +30,9 @@ public class OrderService {
         );
 
         Order savedOrder = orderRepository.save(order);
+
+        // Initialize dynamic workflow state
+        orderWorkflowStateService.recordCreated(savedOrder.getId());
 
         orderEventPublisher.publish(new OrderCreatedEvent(
                 savedOrder.getId().toString(),

@@ -26,6 +26,9 @@ class OrderServiceTest {
     @Mock
     private OrderEventPublisher orderEventPublisher;
 
+    @Mock
+    private OrderWorkflowStateService orderWorkflowStateService;
+
     @InjectMocks
     private OrderService orderService;
 

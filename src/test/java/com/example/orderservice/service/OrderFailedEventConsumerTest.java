@@ -26,6 +26,9 @@ class OrderFailedEventConsumerTest {
     @Mock
     private FailureEventPublisher failureEventPublisher;
 
+    @Mock
+    private OrderWorkflowStateService orderWorkflowStateService;
+
     @InjectMocks
     private OrderFailedEventConsumer consumer;
 

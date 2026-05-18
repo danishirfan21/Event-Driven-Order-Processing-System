@@ -154,6 +154,35 @@ All responses return standard HTTP body schemas containing audit timestamps (`cr
 | **`POST`** | `/orders` | Submit a new order into the processing pipeline | `{"productId": "prod-123", "quantity": 3}` | `201 Created` |
 | **`GET`** | `/orders` | Retrieves all registered orders in the H2 Database | *None* | `200 OK` |
 | **`GET`** | `/orders/{id}` | Fetches a single order details by its DB ID | *None* | `200 OK` / `404 Not Found` |
+| **`GET`** | `/orders/{id}/workflow` | Fetches the real-time workflow stage progress of an order | *None* | `200 OK` / `404 Not Found` |
+| **`GET`** | `/orders/workflows` | Retrieves workflow stages, retry audits, and DLQ markers for all orders | *None* | `200 OK` |
+
+### Workflow State Response JSON Schema
+`GET /orders/{id}/workflow` returns:
+```json
+{
+  "orderId": 1,
+  "currentStage": "DEAD_LETTERED",
+  "retryCount": 3,
+  "maxRetries": 3,
+  "dlqRouted": true,
+  "lastEventName": "order.reserved-dlt",
+  "lastErrorMessage": "Simulated shipping service exhaustion.",
+  "updatedAt": "2026-05-19T01:13:23.040"
+}
+```
+
+### Chronological Workflow Auditing Stages
+The dashboard tracks the order transition across the following unified stages:
+* **`CREATED`**: Order initialized in the database.
+* **`INVENTORY_CHECK_STARTED`**: Quantity availability validation initiated.
+* **`RESERVED`**: Stock secured successfully.
+* **`FAILED`**: Stock validation failed (Quantities > 5).
+* **`FAILURE_HANDLED`**: Compensating rollback transaction finalized.
+* **`SHIPPING_PREPARATION_STARTED`**: Handed off to logistics.
+* **`RETRYING_SHIPPING`**: Non-blocking backoff retry attempt in progress.
+* **`SHIPPING_PREPARED`**: Order shipped successfully.
+* **`DEAD_LETTERED`**: Retry budget exhausted; safely isolated in DLQ.
 
 ---
 
@@ -169,6 +198,10 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
        -H "Content-Type: application/json" \
        -d '{"productId": "laptop-pro", "quantity": 3}'
   ```
+* **Verify Workflow State**:
+  ```bash
+  curl http://localhost:8080/orders/1/workflow
+  ```
 
 ### 2. Trigger Inventory Reservation Compensation Flow
 * **Behavior**: Quantity is $> 5$. The inventory reservation fails, and compensating hooks mark the status as `FAILED` and log `OrderFailureHandledEvent` for cleanups.
@@ -177,6 +210,10 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
   curl -X POST http://localhost:8080/orders \
        -H "Content-Type: application/json" \
        -d '{"productId": "laptop-pro", "quantity": 10}'
+  ```
+* **Verify Workflow State**:
+  ```bash
+  curl http://localhost:8080/orders/2/workflow
   ```
 
 ### 3. Trigger Downstream Non-Blocking Retry & DLQ Shipping Flow
@@ -188,11 +225,15 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
        -d '{"productId": "laptop-fail-shipping", "quantity": 2}'
   ```
   *Monitor your console or Kafdrop portal to see the retries and dead-letter routing logs!*
+* **Verify Retry / DLQ Audit States**:
+  ```bash
+  curl http://localhost:8080/orders/3/workflow
+  ```
 
 ---
 
 ## 🧪 Testing Suite
-The codebase is validated by **35 high-fidelity JUnit 5 tests** checking controller bounds, entity validation constraints, JPA auditer mappings, consumer thread delegations, and mock template publishing.
+The codebase is validated by **39 high-fidelity JUnit 5 tests** checking controller bounds, entity validation constraints, JPA auditer mappings, consumer thread delegations, mock template publishing, retry/DLQ states, and workflow endpoint serialization.
 
 To execute the test suite:
 ```bash

@@ -20,10 +20,14 @@ public class OrderReservedEventConsumer {
 
     private final ShippingService shippingService;
     private final ShippingEventPublisher shippingEventPublisher;
+    private final OrderWorkflowStateService orderWorkflowStateService;
 
-    public OrderReservedEventConsumer(ShippingService shippingService, ShippingEventPublisher shippingEventPublisher) {
+    public OrderReservedEventConsumer(ShippingService shippingService,
+                                      ShippingEventPublisher shippingEventPublisher,
+                                      OrderWorkflowStateService orderWorkflowStateService) {
         this.shippingService = shippingService;
         this.shippingEventPublisher = shippingEventPublisher;
+        this.orderWorkflowStateService = orderWorkflowStateService;
     }
 
     public void handle(OrderReservedEvent event) {
@@ -35,6 +39,7 @@ public class OrderReservedEventConsumer {
         }
 
         shippingService.prepareShipping(event.getProductId(), event.getQuantity());
+        orderWorkflowStateService.recordShippingPrepared(Long.valueOf(event.getOrderId()));
         shippingEventPublisher.publishPrepared(new ShippingPreparedEvent(
                 event.getOrderId(),
                 event.getProductId(),
@@ -50,14 +55,23 @@ public class OrderReservedEventConsumer {
             dltTopicSuffix = "-dlt"
     )
     @KafkaListener(topics = "order.reserved", groupId = "shipping-group")
-    public void listen(OrderReservedEvent event) {
-        log.info("[SHIPPING CONSUMER] Received reserved event for Order ID: {}", event.getOrderId());
+    public void listen(OrderReservedEvent event,
+                       @Header(value = KafkaHeaders.DELIVERY_ATTEMPT, required = false) Integer deliveryAttempt,
+                       @Header(value = KafkaHeaders.RECEIVED_TOPIC, required = false) String topic) {
+        log.info("[SHIPPING CONSUMER] Received reserved event for Order ID: {} (topic: {}, deliveryAttempt: {})",
+                event.getOrderId(), topic, deliveryAttempt);
+        orderWorkflowStateService.recordShippingAttempt(Long.valueOf(event.getOrderId()), deliveryAttempt, topic, "Simulated shipping failure");
         handle(event);
+    }
+
+    public void listen(OrderReservedEvent event) {
+        listen(event, null, null);
     }
 
     @DltHandler
     public void handleDlt(OrderReservedEvent event, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         log.error("[DLQ ALERT] Shipping failed permanently for Order ID: {} (Product: {}). Routed to dead letter topic: {}. Reason: Simulated shipping service exhaustion.",
                 event.getOrderId(), event.getProductId(), topic);
+        orderWorkflowStateService.recordDeadLettered(Long.valueOf(event.getOrderId()), topic, "Simulated shipping service exhaustion.");
     }
 }
