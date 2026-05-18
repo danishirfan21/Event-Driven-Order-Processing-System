@@ -35,6 +35,12 @@ class OrderIntegrationTest {
     @MockBean
     private KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
 
+    @MockBean(name = "defaultRetryTopicKafkaTemplate")
+    private KafkaTemplate<String, Object> kafkaTemplateObject;
+
+    @MockBean
+    private org.springframework.kafka.core.KafkaAdmin kafkaAdmin;
+
     @Test
     void shouldCreateOrderAndPersistInDatabase() throws Exception {
         String orderRequest = """

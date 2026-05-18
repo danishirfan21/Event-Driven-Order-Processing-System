@@ -58,6 +58,24 @@ class OrderReservedEventConsumerTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenProductIdContainsFailShipping() {
+        OrderReservedEvent event = new OrderReservedEvent("1", "prod-fail-shipping", 3, "RESERVED");
+
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> {
+            consumer.handle(event);
+        });
+    }
+
+    @Test
+    void shouldThrowExceptionWhenQuantityIs99() {
+        OrderReservedEvent event = new OrderReservedEvent("1", "prod-ok", 99, "RESERVED");
+
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> {
+            consumer.handle(event);
+        });
+    }
+
+    @Test
     void listenMethodShouldHaveKafkaListenerAnnotation() throws NoSuchMethodException {
         Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class);
         KafkaListener annotation = method.getAnnotation(KafkaListener.class);
@@ -65,5 +83,16 @@ class OrderReservedEventConsumerTest {
         assertNotNull(annotation, "@KafkaListener annotation should be present on listen method");
         assertEquals("order.reserved", annotation.topics()[0]);
         assertEquals("shipping-group", annotation.groupId());
+    }
+
+    @Test
+    void listenMethodShouldHaveRetryableTopicAnnotation() throws NoSuchMethodException {
+        Method method = OrderReservedEventConsumer.class.getMethod("listen", OrderReservedEvent.class);
+        org.springframework.kafka.annotation.RetryableTopic annotation = method.getAnnotation(org.springframework.kafka.annotation.RetryableTopic.class);
+
+        assertNotNull(annotation, "@RetryableTopic annotation should be present on listen method");
+        assertEquals("3", annotation.attempts());
+        assertEquals(1000L, annotation.backoff().delay());
+        assertEquals("-dlt", annotation.dltTopicSuffix());
     }
 }
