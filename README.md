@@ -156,20 +156,35 @@ All responses return standard HTTP body schemas containing audit timestamps (`cr
 | **`GET`** | `/orders/{id}` | Fetches a single order details by its DB ID | *None* | `200 OK` / `404 Not Found` |
 | **`GET`** | `/orders/{id}/workflow` | Fetches the real-time workflow stage progress of an order | *None* | `200 OK` / `404 Not Found` |
 | **`GET`** | `/orders/workflows` | Retrieves workflow stages, retry audits, and DLQ markers for all orders | *None* | `200 OK` |
+| **`GET`** | `/system/runtime` | Fetches pluggable dual-mode active runtime profile and properties | *None* | `200 OK` |
+| **`GET`** | `/orders/{id}/events` | Retrieves chronological, append-only event history log for a single order | *None* | `200 OK` |
+| **`GET`** | `/events/recent` | Retrieves latest system-wide operational event log feed | *None* | `200 OK` |
 
-### Workflow State Response JSON Schema
-`GET /orders/{id}/workflow` returns:
+### System Runtime Response JSON Schema
+`GET /system/runtime` returns:
 ```json
 {
-  "orderId": 1,
-  "currentStage": "DEAD_LETTERED",
-  "retryCount": 3,
-  "maxRetries": 3,
-  "dlqRouted": true,
-  "lastEventName": "order.reserved-dlt",
-  "lastErrorMessage": "Simulated shipping service exhaustion.",
-  "updatedAt": "2026-05-19T01:13:23.040"
+  "messagingMode": "in-memory",
+  "kafkaEnabled": false,
+  "activeProfiles": ["default"]
 }
+```
+
+### Event History Response JSON Schema
+`GET /orders/{id}/events` and `GET /events/recent` return a list of:
+```json
+[
+  {
+    "orderId": 3,
+    "eventName": "ShippingRetryAttempt",
+    "stage": "RETRYING_SHIPPING",
+    "severity": "WARN",
+    "message": "Shipping retry attempt 1/3 failed: Simulated shipping service exception.",
+    "retryAttempt": 1,
+    "dlqEvent": false,
+    "createdAt": "2026-05-19T01:34:02.124"
+  }
+]
 ```
 
 ### Chronological Workflow Auditing Stages
@@ -183,6 +198,38 @@ The dashboard tracks the order transition across the following unified stages:
 * **`RETRYING_SHIPPING`**: Non-blocking backoff retry attempt in progress.
 * **`SHIPPING_PREPARED`**: Order shipped successfully.
 * **`DEAD_LETTERED`**: Retry budget exhausted; safely isolated in DLQ.
+
+---
+
+## 📊 Operational Observability Layer
+
+To support a truthful, premium modern SaaS-style dashboard, the system exposes an append-only event telemetry layer rather than relying on fake frontend simulations.
+
+```mermaid
+flowchart LR
+    classDef api fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+    classDef model fill:#e1d5e7,stroke:#9673a6,stroke-width:2px;
+    classDef db fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+
+    Client[Frontend Dashboard] -->|GET /orders/1/events| API[WorkflowEventController]:::api
+    Client -->|GET /system/runtime| API2[RuntimeController]:::api
+    
+    API -->|Query chronological logs| Repo[OrderWorkflowEventRepository]:::model
+    Repo -->|Fetch append-only records| DB[(H2 Database)]:::db
+```
+
+### 1. Workflow State Tracking vs. Event History
+* **Workflow State (`OrderWorkflowState`)**: A state machine record storing the *latest* operational coordinates of an order (e.g., current stage, active error, dlq isolation markers).
+* **Event History (`OrderWorkflowEvent`)**: An append-only log storing the entire *chronological path* of the order (e.g. initial publishes, check starts, Warn levels during retries, and Error levels during DLQ routing).
+
+### 2. Retry Auditing
+When downstream shipping processors trigger backoffs, a `ShippingRetryAttempt` event is appended with a `WARN` severity, containing the exact retry budget progress (e.g. `attempt 1/3`) and transient error context.
+
+### 3. DLQ Auditing
+When retries are exhausted, a `DeadLetteredEvent` is appended with an `ERROR` severity, capturing DLQ topic endpoints (`order.reserved-dlt`) and permanent stack warnings to provide operations staff with diagnostic clarity.
+
+### 4. Future Dashboard Compatibility
+The API structure is intentionally decoupled from WebSockets or SSE for robustness, enabling the future premium dashboard to fetch real-time runtime configuration, chronological order timelines, and an operation-wide scrolling event console feed via lightweight REST polling.
 
 ---
 
@@ -202,6 +249,10 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
   ```bash
   curl http://localhost:8080/orders/1/workflow
   ```
+* **Verify Chronological Events**:
+  ```bash
+  curl http://localhost:8080/orders/1/events
+  ```
 
 ### 2. Trigger Inventory Reservation Compensation Flow
 * **Behavior**: Quantity is $> 5$. The inventory reservation fails, and compensating hooks mark the status as `FAILED` and log `OrderFailureHandledEvent` for cleanups.
@@ -214,6 +265,10 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
 * **Verify Workflow State**:
   ```bash
   curl http://localhost:8080/orders/2/workflow
+  ```
+* **Verify Chronological Events**:
+  ```bash
+  curl http://localhost:8080/orders/2/events
   ```
 
 ### 3. Trigger Downstream Non-Blocking Retry & DLQ Shipping Flow
@@ -229,11 +284,15 @@ Use `curl` or any API client (e.g. Postman) to trigger the simulated event behav
   ```bash
   curl http://localhost:8080/orders/3/workflow
   ```
+* **Verify Chronological Retry/DLQ Events**:
+  ```bash
+  curl http://localhost:8080/orders/3/events
+  ```
 
 ---
 
 ## 🧪 Testing Suite
-The codebase is validated by **39 high-fidelity JUnit 5 tests** checking controller bounds, entity validation constraints, JPA auditer mappings, consumer thread delegations, mock template publishing, retry/DLQ states, and workflow endpoint serialization.
+The codebase is validated by **40 high-fidelity JUnit 5 tests** checking controller bounds, entity validation constraints, JPA auditer mappings, consumer thread delegations, mock template publishing, retry/DLQ states, runtime modes, append-only event streams, and workflow endpoint serialization.
 
 To execute the test suite:
 ```bash

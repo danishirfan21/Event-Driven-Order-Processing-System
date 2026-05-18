@@ -1,8 +1,10 @@
 package com.example.orderservice.service;
 
 import com.example.orderservice.model.OrderWorkflowState;
+import com.example.orderservice.model.OrderWorkflowEvent;
 import com.example.orderservice.model.WorkflowStage;
 import com.example.orderservice.repository.OrderWorkflowStateRepository;
+import com.example.orderservice.repository.OrderWorkflowEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,11 @@ public class OrderWorkflowStateService {
     private static final Logger log = LoggerFactory.getLogger(OrderWorkflowStateService.class);
 
     private final OrderWorkflowStateRepository repository;
+    private final OrderWorkflowEventRepository eventRepository;
 
-    public OrderWorkflowStateService(OrderWorkflowStateRepository repository) {
+    public OrderWorkflowStateService(OrderWorkflowStateRepository repository, OrderWorkflowEventRepository eventRepository) {
         this.repository = repository;
+        this.eventRepository = eventRepository;
     }
 
     private OrderWorkflowState getOrCreateState(Long orderId, WorkflowStage initialStage, String lastEventName) {
@@ -29,6 +33,11 @@ public class OrderWorkflowStateService {
                     OrderWorkflowState state = new OrderWorkflowState(orderId, initialStage, lastEventName);
                     return repository.save(state);
                 });
+    }
+
+    private void saveEvent(Long orderId, String eventName, WorkflowStage stage, String message, String severity, int retryAttempt, boolean dlqEvent) {
+        OrderWorkflowEvent event = new OrderWorkflowEvent(orderId, eventName, stage, message, severity, retryAttempt, dlqEvent);
+        eventRepository.save(event);
     }
 
     @Transactional
@@ -42,6 +51,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to CREATED", orderId);
+        saveEvent(orderId, "OrderCreatedEvent", WorkflowStage.CREATED, "OrderCreatedEvent published; initialized workflow state.", "INFO", 0, false);
     }
 
     @Transactional
@@ -51,6 +61,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to INVENTORY_CHECK_STARTED", orderId);
+        saveEvent(orderId, "InventoryCheckStarted", WorkflowStage.INVENTORY_CHECK_STARTED, "Inventory reservation check started.", "INFO", 0, false);
     }
 
     @Transactional
@@ -61,6 +72,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to RESERVED", orderId);
+        saveEvent(orderId, "OrderReservedEvent", WorkflowStage.RESERVED, "Inventory reservation succeeded; stock secured.", "INFO", 0, false);
     }
 
     @Transactional
@@ -72,6 +84,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to FAILED (Reason: {})", orderId, errorMessage);
+        saveEvent(orderId, "OrderFailedEvent", WorkflowStage.FAILED, "Inventory reservation failed: " + errorMessage, "ERROR", 0, false);
     }
 
     @Transactional
@@ -82,6 +95,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to SHIPPING_PREPARATION_STARTED", orderId);
+        saveEvent(orderId, "ShippingPreparationStarted", WorkflowStage.SHIPPING_PREPARATION_STARTED, "Shipping preparation started; dispatching to logistics.", "INFO", 0, false);
     }
 
     @Transactional
@@ -108,6 +122,7 @@ public class OrderWorkflowStateService {
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to RETRYING_SHIPPING (Attempt: {}/{}, Error: {})",
                 orderId, attempt, state.getMaxRetries(), errorMessage);
+        saveEvent(orderId, "ShippingRetryAttempt", WorkflowStage.RETRYING_SHIPPING, "Shipping retry attempt " + attempt + "/3 failed: " + errorMessage, "WARN", attempt, false);
     }
 
     @Transactional
@@ -118,6 +133,8 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to SHIPPING_PREPARED", orderId);
+        int currentRetry = state.getRetryCount();
+        saveEvent(orderId, "ShippingPreparedEvent", WorkflowStage.SHIPPING_PREPARED, "Shipping prepared successfully; order ready for delivery.", "INFO", currentRetry, false);
     }
 
     @Transactional
@@ -131,6 +148,7 @@ public class OrderWorkflowStateService {
         repository.save(state);
         log.error("[Workflow State] Permanent failure. Order ID: {} routed to Dead Letter Queue: {} (Error: {})",
                 orderId, dltTopic, errorMessage);
+        saveEvent(orderId, "DeadLetteredEvent", WorkflowStage.DEAD_LETTERED, "Retries exhausted; routed to DLQ topic: " + dltTopic + ". Reason: " + errorMessage, "ERROR", state.getRetryCount(), true);
     }
 
     @Transactional
@@ -141,6 +159,7 @@ public class OrderWorkflowStateService {
         state.setUpdatedAt(LocalDateTime.now());
         repository.save(state);
         log.info("[Workflow State] Updated Order ID: {} to FAILURE_HANDLED", orderId);
+        saveEvent(orderId, "OrderFailureHandledEvent", WorkflowStage.FAILURE_HANDLED, "Compensating transaction finalized; system state reconciled.", "INFO", 0, false);
     }
 
     @Transactional(readOnly = true)
@@ -151,5 +170,15 @@ public class OrderWorkflowStateService {
     @Transactional(readOnly = true)
     public List<OrderWorkflowState> getAllWorkflowStates() {
         return repository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderWorkflowEvent> getEventsByOrderId(Long orderId) {
+        return eventRepository.findByOrderIdOrderByIdAsc(orderId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderWorkflowEvent> getRecentEvents() {
+        return eventRepository.findTop50ByOrderByIdDesc();
     }
 }
