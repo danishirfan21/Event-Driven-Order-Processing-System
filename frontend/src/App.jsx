@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sidebar } from "./components/layout/Sidebar.jsx";
 import { TopBar } from "./components/layout/TopBar.jsx";
 import { EventStreamScreen } from "./features/event-stream/EventStreamScreen.jsx";
+import { DlqFailureCenterScreen } from "./features/dlq/DlqFailureCenterScreen.jsx";
 import { OrdersContent } from "./features/orders/OrdersContent.jsx";
 import { OverviewScreen } from "./features/overview/OverviewScreen.jsx";
 import { TopologyScreen } from "./features/topology/TopologyScreen.jsx";
@@ -18,7 +19,8 @@ export default function App() {
         {activeScreen === "Overview" && <OverviewScreen />}
         {activeScreen === "Event Stream" && <EventStreamScreen />}
         {activeScreen === "Topology" && <TopologyScreen />}
-        {!["Overview", "Event Stream", "Topology"].includes(activeScreen) && <OrdersContent />}
+        {activeScreen === "DLQ / Failure Center" && <DlqFailureCenterScreen />}
+        {!["Overview", "Event Stream", "Topology", "DLQ / Failure Center"].includes(activeScreen) && <OrdersContent />}
       </div>
     </div>
   );

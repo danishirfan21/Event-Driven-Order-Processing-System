@@ -2,7 +2,11 @@ import { Bell } from "lucide-react";
 import { RuntimePill } from "./RuntimePill.jsx";
 
 export function TopBar({ title = "Orders" }) {
-  const subtitle = title === "Topology" ? "Visualize how orders flow through services, topics, retries, and DLQ" : "";
+  const subtitles = {
+    Topology: "Visualize how orders flow through services, topics, retries, and DLQ",
+    "DLQ / Failure Center": "Inspect dead-lettered and retrying orders, understand failures, and review retry attempts.",
+  };
+  const subtitle = subtitles[title] || "";
 
   return (
     <header className="sticky top-0 z-10 flex h-[76px] items-center border-b border-slate-700/45 bg-[#06111d]/90 px-7 backdrop-blur">

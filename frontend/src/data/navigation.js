@@ -15,6 +15,6 @@ export const navItems = [
   { label: "Topology", icon: GitBranch },
   { label: "Workflows", icon: Workflow },
   { label: "Retries", icon: ListRestart },
-  { label: "DLQ", icon: ShoppingBag },
+  { label: "DLQ / Failure Center", icon: ShoppingBag },
   { label: "Settings", icon: Settings },
 ];
