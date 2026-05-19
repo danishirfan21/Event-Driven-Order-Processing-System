@@ -4,6 +4,7 @@ import { TopBar } from "./components/layout/TopBar.jsx";
 import { EventStreamScreen } from "./features/event-stream/EventStreamScreen.jsx";
 import { OrdersContent } from "./features/orders/OrdersContent.jsx";
 import { OverviewScreen } from "./features/overview/OverviewScreen.jsx";
+import { TopologyScreen } from "./features/topology/TopologyScreen.jsx";
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState("Orders");
@@ -16,7 +17,8 @@ export default function App() {
         <TopBar title={activeScreen} />
         {activeScreen === "Overview" && <OverviewScreen />}
         {activeScreen === "Event Stream" && <EventStreamScreen />}
-        {!["Overview", "Event Stream"].includes(activeScreen) && <OrdersContent />}
+        {activeScreen === "Topology" && <TopologyScreen />}
+        {!["Overview", "Event Stream", "Topology"].includes(activeScreen) && <OrdersContent />}
       </div>
     </div>
   );

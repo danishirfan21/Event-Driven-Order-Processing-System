@@ -1,6 +1,76 @@
 import { ChevronLeft } from "lucide-react";
 import { navItems } from "../../data/navigation.js";
+import { legendItems, scenarioPresets } from "../../data/topology.js";
 import { ShellLogo } from "./ShellLogo.jsx";
+
+function TopologyPreset({ title, description, active }) {
+  return (
+    <button className={`flex w-full gap-3 rounded-md border p-3 text-left ${active ? "border-cyan-500 bg-cyan-500/10" : "border-slate-700/55 bg-slate-950/20"}`}>
+      <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-xs ${active ? "border-cyan-400 text-cyan-300" : "border-slate-500 text-slate-400"}`}>
+        {active ? "OK" : ""}
+      </span>
+      <span>
+        <span className="block text-sm font-medium text-white">{title}</span>
+        <span className="mt-1 block text-xs leading-5 text-slate-400">{description}</span>
+      </span>
+    </button>
+  );
+}
+
+function LegendGlyph({ type }) {
+  if (type === "box") return <span className="h-3 w-6 rounded-sm border border-cyan-400" />;
+  if (type === "topic") return <span className="h-px w-7 border-t border-dashed border-slate-400" />;
+  if (type === "circle") return <span className="h-4 w-4 rounded-full border border-slate-400" />;
+  if (type === "line-cyan") return <span className="h-px w-7 bg-cyan-400" />;
+  if (type === "line-dashed") return <span className="h-px w-7 border-t border-dashed border-slate-400" />;
+  if (type === "line-amber") return <span className="h-px w-7 border-t-2 border-dashed border-amber-400" />;
+  if (type === "line-red") return <span className="h-px w-7 border-t-2 border-dashed border-red-400" />;
+  return null;
+}
+
+function TopologySidebarExtras() {
+  return (
+    <div className="mt-auto space-y-3">
+      <div className="rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-200">Scenario Presets</h3>
+        <p className="mt-2 text-xs leading-5 text-slate-400">Choose a scenario to highlight the active path</p>
+        <div className="mt-4 space-y-2">
+          {scenarioPresets.map((preset) => (
+            <TopologyPreset key={preset.title} {...preset} />
+          ))}
+        </div>
+      </div>
+      <div className="rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
+        <h3 className="text-sm font-medium text-slate-200">Legend</h3>
+        <div className="mt-4 space-y-4">
+          {legendItems.map(([label, type]) => (
+            <div key={label} className="flex items-center gap-4 text-sm text-slate-300">
+              <LegendGlyph type={type} />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HealthSidebarExtras() {
+  return (
+    <div className="mt-auto rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
+      <div className="text-xs text-slate-400">System Health</div>
+      <div className="mt-2 flex items-center gap-2 text-sm text-emerald-400">
+        <span className="h-2 w-2 rounded-full bg-emerald-400" /> Healthy
+      </div>
+      <div className="mt-6 text-xs text-slate-400">Throughput (1m)</div>
+      <div className="mt-1 text-xl text-cyan-300">
+        1,248 <span className="text-xs text-slate-400">events/min</span>
+      </div>
+      <div className="mt-6 text-xs text-slate-400">In-flight Orders</div>
+      <div className="mt-1 text-xl text-white">312</div>
+    </div>
+  );
+}
 
 export function Sidebar({ activeScreen, onNavigate }) {
   return (
@@ -28,18 +98,7 @@ export function Sidebar({ activeScreen, onNavigate }) {
           );
         })}
       </nav>
-      <div className="mt-auto rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
-        <div className="text-xs text-slate-400">System Health</div>
-        <div className="mt-2 flex items-center gap-2 text-sm text-emerald-400">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" /> Healthy
-        </div>
-        <div className="mt-6 text-xs text-slate-400">Throughput (1m)</div>
-        <div className="mt-1 text-xl text-cyan-300">
-          1,248 <span className="text-xs text-slate-400">events/min</span>
-        </div>
-        <div className="mt-6 text-xs text-slate-400">In-flight Orders</div>
-        <div className="mt-1 text-xl text-white">312</div>
-      </div>
+      {activeScreen === "Topology" ? <TopologySidebarExtras /> : <HealthSidebarExtras />}
       <div className="mt-5 border-t border-slate-700/45 pt-5">
         <div className="flex items-center gap-4 px-4 text-sm text-slate-400">
           <ChevronLeft className="h-5 w-5" /> Collapse

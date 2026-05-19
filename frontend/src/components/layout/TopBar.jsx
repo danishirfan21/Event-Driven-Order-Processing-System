@@ -2,9 +2,14 @@ import { Bell } from "lucide-react";
 import { RuntimePill } from "./RuntimePill.jsx";
 
 export function TopBar({ title = "Orders" }) {
+  const subtitle = title === "Topology" ? "Visualize how orders flow through services, topics, retries, and DLQ" : "";
+
   return (
     <header className="sticky top-0 z-10 flex h-[76px] items-center border-b border-slate-700/45 bg-[#06111d]/90 px-7 backdrop-blur">
-      <h1 className="text-2xl font-semibold tracking-tight text-white">{title}</h1>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-white">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-slate-400">{subtitle}</p>}
+      </div>
       <div className="ml-auto flex items-center gap-5">
         <RuntimePill />
         <Bell className="h-5 w-5 text-slate-400" />
