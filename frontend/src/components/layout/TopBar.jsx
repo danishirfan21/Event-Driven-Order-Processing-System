@@ -5,6 +5,7 @@ export function TopBar({ title = "Orders" }) {
   const subtitles = {
     Topology: "Visualize how orders flow through services, topics, retries, and DLQ",
     "DLQ / Failure Center": "Inspect dead-lettered and retrying orders, understand failures, and review retry attempts.",
+    Settings: "Runtime and dashboard configuration",
   };
   const subtitle = subtitles[title] || "";
 

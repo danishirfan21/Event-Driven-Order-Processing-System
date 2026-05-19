@@ -5,6 +5,7 @@ import { EventStreamScreen } from "./features/event-stream/EventStreamScreen.jsx
 import { DlqFailureCenterScreen } from "./features/dlq/DlqFailureCenterScreen.jsx";
 import { OrdersContent } from "./features/orders/OrdersContent.jsx";
 import { OverviewScreen } from "./features/overview/OverviewScreen.jsx";
+import { SettingsScreen } from "./features/settings/SettingsScreen.jsx";
 import { TopologyScreen } from "./features/topology/TopologyScreen.jsx";
 
 export default function App() {
@@ -19,8 +20,9 @@ export default function App() {
         {activeScreen === "Overview" && <OverviewScreen />}
         {activeScreen === "Event Stream" && <EventStreamScreen />}
         {activeScreen === "Topology" && <TopologyScreen />}
+        {activeScreen === "Settings" && <SettingsScreen />}
         {activeScreen === "DLQ / Failure Center" && <DlqFailureCenterScreen />}
-        {!["Overview", "Event Stream", "Topology", "DLQ / Failure Center"].includes(activeScreen) && <OrdersContent />}
+        {!["Overview", "Event Stream", "Topology", "Settings", "DLQ / Failure Center"].includes(activeScreen) && <OrdersContent />}
       </div>
     </div>
   );
