@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "./components/layout/Sidebar.jsx";
 import { TopBar } from "./components/layout/TopBar.jsx";
+import { EventStreamScreen } from "./features/event-stream/EventStreamScreen.jsx";
 import { OrdersContent } from "./features/orders/OrdersContent.jsx";
 import { OverviewScreen } from "./features/overview/OverviewScreen.jsx";
 
@@ -13,7 +14,9 @@ export default function App() {
       <Sidebar activeScreen={activeScreen} onNavigate={setActiveScreen} />
       <div className="relative z-10 ml-[222px] min-h-screen">
         <TopBar title={activeScreen} />
-        {activeScreen === "Overview" ? <OverviewScreen /> : <OrdersContent />}
+        {activeScreen === "Overview" && <OverviewScreen />}
+        {activeScreen === "Event Stream" && <EventStreamScreen />}
+        {!["Overview", "Event Stream"].includes(activeScreen) && <OrdersContent />}
       </div>
     </div>
   );
