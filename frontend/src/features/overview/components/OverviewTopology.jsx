@@ -39,29 +39,33 @@ export function OverviewTopology() {
         </div>
       </div>
 
-      <svg className="absolute inset-0 z-0 h-full w-full" viewBox="0 0 1110 468" preserveAspectRatio="none">
-        <defs>
-          <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22d3ee" /></marker>
-          <marker id="arrow-dash" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8" /></marker>
-        </defs>
-        <path d="M190 126 H270" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
-        <path d="M430 126 H506" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
-        <path d="M660 126 H735" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
-        <path d="M350 158 V205" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" markerEnd="url(#arrow-dash)" />
-        <path d="M350 267 V316" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" markerEnd="url(#arrow-dash)" />
-        <path d="M865 126 H980 Q1008 126 1008 154 V302" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" fill="none" markerEnd="url(#arrow-dash)" />
-        <path d="M860 185 V172 Q860 160 884 160 H918" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" fill="none" markerEnd="url(#arrow-dash)" />
-      </svg>
+      <div className="relative mt-2 h-[360px] overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden">
+        <div className="relative min-w-[1110px] h-full">
+          <svg className="absolute inset-0 z-0 h-full w-full" viewBox="0 0 1110 468" preserveAspectRatio="none">
+            <defs>
+              <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22d3ee" /></marker>
+              <marker id="arrow-dash" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8" /></marker>
+            </defs>
+            <path d="M190 126 H270" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
+            <path d="M430 126 H506" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
+            <path d="M660 126 H735" stroke="#22d3ee" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
+            <path d="M350 158 V205" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" markerEnd="url(#arrow-dash)" />
+            <path d="M350 267 V316" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" markerEnd="url(#arrow-dash)" />
+            <path d="M865 126 H980 Q1008 126 1008 154 V302" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" fill="none" markerEnd="url(#arrow-dash)" />
+            <path d="M860 185 V172 Q860 160 884 160 H918" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth="1.6" fill="none" markerEnd="url(#arrow-dash)" />
+          </svg>
 
-      <div className="relative z-10">
-        <TopologyNode x={28} y={94} title="Order API" sub="Event: OrderCreated" icon={Activity} />
-        <TopologyNode x={270} y={94} title="Inventory Check" sub="CheckAvailability" icon={Box} />
-        <TopologyNode x={505} y={94} title="Reserved" sub="InventoryReserved" icon={LockKeyhole} />
-        <TopologyNode x={735} y={94} title="Shipping" sub="OrderShipped" icon={Truck} />
-        <TopologyNode x={270} y={202} title="Failed" sub="Event Processing Failed" icon={CircleAlert} tone="red" muted />
-        <TopologyNode x={270} y={312} title="Failure Handled" sub="Compensation Complete" icon={CheckCircle2} tone="green" muted />
-        <TopologyNode x={905} y={186} title="Retry Loop" sub="Retrying - Backoff" icon={RotateCcw} tone="amber" />
-        <TopologyNode x={895} y={296} title="Dead Letter Queue" sub="Unrecoverable Events" icon={ShoppingBag} tone="red" />
+          <div className="relative z-10">
+            <TopologyNode x={28} y={94} title="Order API" sub="Event: OrderCreated" icon={Activity} />
+            <TopologyNode x={270} y={94} title="Inventory Check" sub="CheckAvailability" icon={Box} />
+            <TopologyNode x={505} y={94} title="Reserved" sub="InventoryReserved" icon={LockKeyhole} />
+            <TopologyNode x={735} y={94} title="Shipping" sub="OrderShipped" icon={Truck} />
+            <TopologyNode x={270} y={202} title="Failed" sub="Event Processing Failed" icon={CircleAlert} tone="red" muted />
+            <TopologyNode x={270} y={312} title="Failure Handled" sub="Compensation Complete" icon={CheckCircle2} tone="green" muted />
+            <TopologyNode x={905} y={186} title="Retry Loop" sub="Retrying - Backoff" icon={RotateCcw} tone="amber" />
+            <TopologyNode x={895} y={296} title="Dead Letter Queue" sub="Unrecoverable Events" icon={ShoppingBag} tone="red" />
+          </div>
+        </div>
       </div>
     </Panel>
   );

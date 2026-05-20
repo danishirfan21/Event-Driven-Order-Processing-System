@@ -19,7 +19,7 @@ function HeroMetric({ label, value, detail, tone = "white" }) {
     <div className="border-l border-slate-700/50 px-7 first:border-l-0">
       <div className="text-[11px] uppercase tracking-wide text-slate-400">{label}</div>
       <div className={`mt-2 text-2xl font-medium ${colors[tone]}`}>{value}</div>
-      {detail && <span className="ml-1 text-xs text-slate-400">{detail}</span>}
+      {detail && <div className="mt-1 text-xs text-slate-400">{detail}</div>}
     </div>
   );
 }
@@ -28,7 +28,7 @@ export function OverviewScreen() {
   return (
     <main className="p-5">
       <Panel className="mb-5 flex min-h-[100px] items-center overflow-hidden">
-        <div className="flex min-w-[410px] items-center gap-6 px-7">
+        <div className="flex min-w-0 flex-wrap items-center gap-6 px-7">
           <Activity className="h-9 w-9 text-cyan-300" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">Overview</h1>
@@ -45,7 +45,7 @@ export function OverviewScreen() {
         </div>
       </Panel>
 
-      <div className="grid grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 gap-5 xl:grid-cols-4">
         <OverviewTopology />
         <ActiveTrace />
         <EventTimeline />

@@ -46,8 +46,8 @@ function Pagination() {
 
 export function DlqFailureCenterScreen() {
   return (
-    <div className="grid grid-cols-[minmax(820px,1fr)_540px]">
-      <main className="min-w-0 p-5">
+    <div className="flex min-h-[calc(100vh-76px)] overflow-hidden">
+      <main className="min-w-0 flex-1 overflow-y-auto p-5">
         <FailureSummaryStrip items={failureSummary} />
         <FilterTabs />
         <section className="overflow-hidden rounded-lg border border-slate-700/65 bg-[#071421]/82 shadow-[0_18px_55px_rgba(0,0,0,.2)]">
@@ -55,7 +55,9 @@ export function DlqFailureCenterScreen() {
           <Pagination />
         </section>
       </main>
-      <FailureDetailsPanel timeline={retryTimeline} />
+      <div className="w-[540px] shrink-0">
+        <FailureDetailsPanel timeline={retryTimeline} />
+      </div>
     </div>
   );
 }

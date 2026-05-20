@@ -31,7 +31,7 @@ export function OrdersTable() {
           <tbody>
             {orders.map((order) => (
               <tr key={order[0]} className={`border-b border-slate-700/35 last:border-b-0 ${order[9] ? "bg-cyan-500/[0.08] outline outline-1 outline-cyan-500/60" : "hover:bg-slate-800/25"}`}>
-                <td className="px-4 py-4 font-medium text-white">{order[0]}</td>
+                <td className="px-4 py-4 font-medium text-white whitespace-nowrap">{order[0]}</td>
                 <td className="px-3 text-slate-300">{order[1]}</td>
                 <td className="px-3 text-slate-200">{order[2]}</td>
                 <td className="px-3"><StatusBadge value={order[3]} /></td>
@@ -43,8 +43,8 @@ export function OrdersTable() {
                     {order[6]}
                   </span>
                 </td>
-                <td className="px-3 text-xs text-slate-400">{order[7]}</td>
-                <td className="px-3 text-xs text-slate-400">{order[8]}</td>
+                <td className="px-3 text-xs text-slate-400 whitespace-nowrap">{order[7]}</td>
+                <td className="px-3 text-xs text-slate-400 whitespace-nowrap">{order[8]}</td>
               </tr>
             ))}
           </tbody>

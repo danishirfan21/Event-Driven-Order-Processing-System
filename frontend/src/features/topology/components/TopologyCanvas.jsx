@@ -50,8 +50,9 @@ function Label({ x, y, children, tone = "slate" }) {
 
 export function TopologyCanvas() {
   return (
-    <div className="absolute inset-0">
-      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(56,189,248,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.07)_1px,transparent_1px)] [background-size:28px_28px]" />
+    <div className="absolute inset-0 overflow-auto [&::-webkit-scrollbar]:hidden">
+      <div className="relative h-full w-full min-w-[1120px] min-h-[720px]">
+        <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(56,189,248,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.07)_1px,transparent_1px)] [background-size:28px_28px]" />
 
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1120 720" preserveAspectRatio="none">
         <defs>
@@ -101,6 +102,7 @@ export function TopologyCanvas() {
       <Node x={766} y={438} title="Retry Loop" sub="Exponential Backoff" icon={RefreshCw} tone="amber" w={184} />
       <Topic x={772} y={578} title="Dead Letter Topic" sub="order.dlq" tone="red" />
       <div className="absolute left-[972px] top-[438px] z-10 text-sm leading-5 text-slate-400">Retry up to<br />Max Attempts</div>
+      </div>
     </div>
   );
 }

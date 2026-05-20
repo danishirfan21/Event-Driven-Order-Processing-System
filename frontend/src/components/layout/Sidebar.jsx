@@ -30,7 +30,7 @@ function LegendGlyph({ type }) {
 
 function TopologySidebarExtras() {
   return (
-    <div className="mt-auto space-y-3">
+    <div className="space-y-3 py-3">
       <div className="rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
         <h3 className="text-sm font-medium uppercase tracking-wide text-slate-200">Scenario Presets</h3>
         <p className="mt-2 text-xs leading-5 text-slate-400">Choose a scenario to highlight the active path</p>
@@ -57,7 +57,7 @@ function TopologySidebarExtras() {
 
 function HealthSidebarExtras() {
   return (
-    <div className="mt-auto rounded-md border border-slate-700/55 bg-[#081827]/80 p-4">
+    <div className="rounded-md border border-slate-700/55 bg-[#081827]/80 p-4 my-3">
       <div className="text-xs text-slate-400">System Health</div>
       <div className="mt-2 flex items-center gap-2 text-sm text-emerald-400">
         <span className="h-2 w-2 rounded-full bg-emerald-400" /> Healthy
@@ -74,11 +74,11 @@ function HealthSidebarExtras() {
 
 export function Sidebar({ activeScreen, onNavigate }) {
   return (
-    <aside className="fixed left-0 top-0 z-20 flex h-screen w-[222px] flex-col border-r border-slate-700/45 bg-[#06111d]/95 px-3 py-5 shadow-[18px_0_70px_rgba(0,0,0,.32)]">
+    <aside className="fixed left-0 top-0 z-20 flex h-screen w-[222px] flex-col border-r border-slate-700/45 bg-[#06111d]/95 px-3 py-5 shadow-[18px_0_70px_rgba(0,0,0,.32)] overflow-hidden">
       <div className="px-2">
         <ShellLogo />
       </div>
-      <nav className="mt-10 space-y-2">
+      <nav className="mt-10 space-y-2 shrink-0">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = item.label === activeScreen;
@@ -98,8 +98,10 @@ export function Sidebar({ activeScreen, onNavigate }) {
           );
         })}
       </nav>
-      {activeScreen === "Topology" ? <TopologySidebarExtras /> : <HealthSidebarExtras />}
-      <div className="mt-5 border-t border-slate-700/45 pt-5">
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden">
+        {activeScreen === "Topology" ? <TopologySidebarExtras /> : <HealthSidebarExtras />}
+      </div>
+      <div className="mt-5 shrink-0 border-t border-slate-700/45 pt-5">
         <div className="flex items-center gap-4 px-4 text-sm text-slate-400">
           <ChevronLeft className="h-5 w-5" /> Collapse
         </div>

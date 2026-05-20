@@ -24,8 +24,8 @@ function CanvasToolbar() {
 
 export function TopologyScreen() {
   return (
-    <div className="grid min-h-[calc(100vh-76px)] grid-cols-[minmax(0,1fr)_390px]">
-      <main className="min-w-0">
+    <div className="flex min-h-[calc(100vh-76px)] overflow-hidden">
+      <main className="min-w-0 flex-1 overflow-y-auto">
         <section className="p-5">
           <div className="relative h-[calc(100vh-245px)] min-h-[640px] overflow-hidden rounded-lg border border-slate-700/65 bg-[#06111d]/82">
             <CanvasToolbar />
@@ -40,7 +40,9 @@ export function TopologyScreen() {
         </section>
         <ActivePathTrace items={activeTrace} />
       </main>
-      <SelectedNodePanel />
+      <div className="w-[390px] shrink-0">
+        <SelectedNodePanel />
+      </div>
     </div>
   );
 }

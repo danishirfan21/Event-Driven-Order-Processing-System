@@ -3,9 +3,9 @@ import { Panel } from "../../../components/ui/Panel.jsx";
 
 function InfoRow({ label, value, danger }) {
   return (
-    <div className="grid grid-cols-[105px_1fr] gap-4 text-sm">
-      <span className="text-slate-400">{label}</span>
-      <span className={danger ? "text-red-400" : "text-slate-200"}>{value}</span>
+    <div className="mb-4 grid grid-cols-[120px_1fr] items-center last:mb-0">
+      <div className="text-xs text-slate-400">{label}</div>
+      <div className={`text-sm ${danger ? "text-red-400" : "text-slate-200"}`}>{value}</div>
     </div>
   );
 }
@@ -41,7 +41,7 @@ function TimelineItem({ item, last }) {
 
 export function FailureDetailsPanel({ timeline }) {
   return (
-    <aside className="space-y-3 border-l border-slate-800/80 p-5">
+    <aside className="sticky top-0 h-[calc(100vh-76px)] overflow-y-auto space-y-3 border-l border-slate-800/80 p-5">
       <Panel className="p-5">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -52,7 +52,7 @@ export function FailureDetailsPanel({ timeline }) {
         </div>
         <div className="rounded-md border border-slate-700/60 bg-[#071421]/80 p-4">
           <h3 className="mb-5 font-medium text-white">Summary</h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+          <div className="space-y-0">
             <InfoRow label="Product ID" value="PROD-fail-shipping-101" />
             <InfoRow label="Max Retries" value="3" />
             <InfoRow label="Quantity" value="2" />

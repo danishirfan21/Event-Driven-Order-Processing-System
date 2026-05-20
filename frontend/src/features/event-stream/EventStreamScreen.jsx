@@ -31,8 +31,8 @@ function ModeButton({ icon: Icon, label, active }) {
 
 export function EventStreamScreen() {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_390px]">
-      <main className="min-w-0 border-r border-slate-800/80 p-7">
+    <div className="flex min-h-[calc(100vh-76px)] overflow-hidden">
+      <main className="min-w-0 flex-1 overflow-y-auto border-r border-slate-800/80 p-7">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             {eventStats.map((stat) => (
@@ -68,7 +68,9 @@ export function EventStreamScreen() {
         </div>
       </main>
 
-      <StreamSidebar severityBreakdown={severityBreakdown} topEvents={topEvents} />
+      <div className="w-[390px] shrink-0">
+        <StreamSidebar severityBreakdown={severityBreakdown} topEvents={topEvents} />
+      </div>
     </div>
   );
 }

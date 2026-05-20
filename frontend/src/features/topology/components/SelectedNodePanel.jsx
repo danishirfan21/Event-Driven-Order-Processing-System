@@ -21,7 +21,7 @@ function ActionButton({ children }) {
 
 export function SelectedNodePanel() {
   return (
-    <aside className="border-l border-slate-800/80 p-5">
+    <aside className="sticky top-0 h-[calc(100vh-76px)] overflow-y-auto border-l border-slate-800/80 p-5">
       <Panel className="overflow-hidden">
         <div className="border-b border-slate-700/60 p-5">
           <h3 className="text-sm font-medium uppercase tracking-wide text-slate-300">Selected Node</h3>

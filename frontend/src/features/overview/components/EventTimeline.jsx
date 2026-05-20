@@ -45,15 +45,15 @@ export function EventTimeline() {
               <div className="font-medium text-cyan-300">{row.id}</div>
               <div className="mt-2 text-xs text-slate-400">{row.events}</div>
             </div>
-            <div className="flex items-center">
+            <div className="flex flex-1 items-center overflow-x-auto pb-2 scrollbar-thin">
               {row.steps.map((step, index) => (
                 <React.Fragment key={`${row.id}-${step[0]}-${index}`}>
-                  <div className="min-w-[78px] text-center">
+                  <div className="w-[110px] shrink-0 text-center">
                     <div className="mx-auto w-fit"><MiniStepIcon type={step[2]} color={step[3]} /></div>
-                    <div className={`mt-2 text-[10px] ${step[3] === "red" ? "text-red-400" : step[3] === "amber" ? "text-amber-400" : "text-slate-300"}`}>{step[0]}</div>
+                    <div className={`mt-2 text-[10px] whitespace-nowrap ${step[3] === "red" ? "text-red-400" : step[3] === "amber" ? "text-amber-400" : "text-slate-300"}`}>{step[0]}</div>
                     <div className="mt-1 text-[10px] text-slate-400">{step[1]}</div>
                   </div>
-                  {index < row.steps.length - 1 && <div className="-mx-2 h-px flex-1 bg-slate-500/70" />}
+                  {index < row.steps.length - 1 && <div className="h-px min-w-[24px] flex-1 bg-slate-500/70" />}
                 </React.Fragment>
               ))}
             </div>

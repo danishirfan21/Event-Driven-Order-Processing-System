@@ -51,12 +51,12 @@ export function EventGroup({ order }) {
         <ChevronUp className="ml-6 h-5 w-5 text-slate-300" />
       </header>
 
-      <div className="relative py-2">
+      <div className="relative overflow-x-auto py-2">
         <div className="absolute bottom-5 left-[23px] top-5 w-px bg-cyan-400/45" />
         {order.events.map(([time, severity, eventName, stage, message, attempt, dlq]) => {
           const styles = severityStyles[severity];
           return (
-            <div key={`${order.orderId}-${time}-${eventName}`} className="relative grid min-h-9 grid-cols-[32px_108px_72px_220px_1fr_265px_58px_46px] items-center px-4 text-sm">
+            <div key={`${order.orderId}-${time}-${eventName}`} className="relative grid min-h-9 grid-cols-[32px_108px_72px_220px_1fr_265px_58px_46px] items-center gap-x-3 px-4 text-sm">
               <span className={`relative z-10 h-2.5 w-2.5 rounded-full ${styles.dot}`} />
               <span className="text-slate-400">{time}</span>
               <span className={`flex items-center gap-2 ${styles.text}`}>

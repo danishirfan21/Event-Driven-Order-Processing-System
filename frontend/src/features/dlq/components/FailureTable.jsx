@@ -21,7 +21,7 @@ export function FailureTable({ rows }) {
       <tbody>
         {rows.map((row) => (
           <tr key={row[0]} className={`border-b border-slate-700/35 last:border-b-0 ${row[8] ? "bg-red-500/[0.08] outline outline-1 outline-red-500/75" : "hover:bg-slate-800/25"}`}>
-            <td className="px-4 py-4 font-medium text-white">{row[0]}</td>
+            <td className="px-4 py-4 font-medium text-white whitespace-nowrap">{row[0]}</td>
             <td className="px-3 text-slate-400">{row[1]}</td>
             <td className="px-3 text-slate-200">{row[2]}</td>
             <td className="px-3"><span className={`rounded px-3 py-1 text-xs font-semibold ${stageStyles[row[3]]}`}>{row[3]}</span></td>
@@ -33,7 +33,7 @@ export function FailureTable({ rows }) {
               </span>
             </td>
             <td className="max-w-[210px] px-3 text-slate-400">{row[6]}</td>
-            <td className="px-3 text-slate-400">{row[7]}</td>
+            <td className="px-3 text-slate-400 whitespace-nowrap">{row[7]}</td>
           </tr>
         ))}
       </tbody>

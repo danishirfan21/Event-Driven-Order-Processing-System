@@ -57,7 +57,7 @@ function SidebarIconBadge({ icon: Icon, tone }) {
 
 export function StreamSidebar({ severityBreakdown, topEvents }) {
   return (
-    <aside className="space-y-3 p-5">
+    <aside className="sticky top-0 h-[calc(100vh-76px)] overflow-y-auto space-y-3 p-5">
       <SidebarCard title="Stream Summary" action={<span className="text-xs text-slate-400">Last 1 hour</span>}>
         <div className="grid grid-cols-4 gap-4">
           <SummaryMetric value="1,842" label="Total Events" />

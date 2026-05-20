@@ -32,8 +32,8 @@ function Tab({ label, count, active, tone }) {
 
 export function OrdersContent() {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_390px]">
-      <main className="min-w-0 p-7">
+    <div className="flex min-h-[calc(100vh-76px)] overflow-hidden">
+      <main className="min-w-0 flex-1 overflow-y-auto p-7">
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <div className="relative h-12 w-[290px]">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -58,7 +58,9 @@ export function OrdersContent() {
 
         <OrdersTable />
       </main>
-      <DetailPanel />
+      <div className="w-[390px] shrink-0">
+        <DetailPanel />
+      </div>
     </div>
   );
 }

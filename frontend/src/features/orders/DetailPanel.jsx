@@ -14,7 +14,7 @@ function InfoRow({ label, value }) {
 
 export function DetailPanel() {
   return (
-    <aside className="sticky top-[76px] h-[calc(100vh-76px)] w-full overflow-y-auto border-l border-slate-700/55 bg-[#071421]/95 p-5 shadow-[-18px_0_70px_rgba(0,0,0,.28)]">
+    <aside className="sticky top-0 h-[calc(100vh-76px)] w-full overflow-y-auto border-l border-slate-700/55 bg-[#071421]/95 p-5 shadow-[-18px_0_70px_rgba(0,0,0,.28)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-medium text-white">ORD-8f3a7c2e</h2>
